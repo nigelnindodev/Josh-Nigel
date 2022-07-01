@@ -50,7 +50,8 @@ def sort_dict_count(dictionary):
 
 
 def sort_dict_items(dictionary):
-    return dict(sorted(dictionary.keys(), key=lambda x: dictionary[x], reverse=True))
+    # return dict.sort(key=lambda value: len(value))
+    return dict(sorted(dictionary.items(), key=lambda kv: (len(kv[1]), len(kv[0])), reverse=True))
 
 
 # Take in the log segments and count how many times and IP address shows up
