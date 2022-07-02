@@ -7,17 +7,17 @@ LOG_FILE_NAME = 'assignment.log'
 MAX_REQUEST_THRESHOLD = 20
 ALGOLIA_BASE_URL = 'https://www.algolia.com'
 
-# One way you would have doe it is to use regexes as shown in this example. But since the log data is spaced out
-# uniformly, its easier and more performant to use spaces.
+# One way it would have done is to use regexes as shown in this example to filter parts of a single log line.
+# But since the log data is spaced out uniformly, its easier and more performant to use spaces.
 IP_REGEX = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'
 
-# After splitting an individual log string, we get array indexes corresponding to some data we are interested in
+# After splitting an individual log string, we get array indexes corresponding to some data we are interested in.
+# See example below
+# ['80.85.69.0', '0.072', '-', '[20/Jan/2017:06:54:16', '+0000]', '"GET', '/1/usage/search_operations/period/month', 'HTTP/1.1"', '200', '632', '"-"', '"python-requests/2.3.0', 'CPython/2.7.11', 'Windows/7"\n']
 IP_ADDRESS_INDEX = 0
 HTTP_METHOD_INDEX = 5
 HTTP_STATUS_CODE_INDEX = 8
 ORIGIN_URL_INDEX = 10
-BYTE_SIZE_INDEX = 9
-USER_AGENT_INDEX = 10
 
 # Data structure to hold values while iterating
 ip_address_count = {}
@@ -33,7 +33,7 @@ def read_file(file_name):
     return lines
 
 
-# TODO: Remove this, not being used
+# TODO: Remove this, not being used since we are not using regexes to parse log lines
 def extract_regex(line):
     ip_list = re.findall(IP_REGEX, line)
     return ip_list
@@ -45,10 +45,14 @@ def print_dict(dictionary):
         print(key, ' => ', value)
 
 
+# Function that helps sort numeric dict values. reverse = True so that we get results in descending order to see
+# the largest threats first.
 def sort_dict_count(dictionary):
     return dict(sorted(dictionary.items(), key=lambda item: item[1], reverse=True))
 
 
+# Function that helps sort array dict values. Comparison function `lambda kv: (len(kv[1]), len(kv[0]))` checks
+# the length of dict values (which are arrays in this case), and sorts then according to the len function
 def sort_dict_items(dictionary):
     # return dict.sort(key=lambda value: len(value))
     return dict(sorted(dictionary.items(), key=lambda kv: (len(kv[1]), len(kv[0])), reverse=True))
@@ -65,6 +69,7 @@ def ip_address_check(log_segments):
         ip_address_count[ip_address] = 0
 
 
+# Function to check which requests do not come from constant `ORIGIN_URL_INDEX`
 def origin_url_check(log_segments):
     origin_url = log_segments[ORIGIN_URL_INDEX]
     if ALGOLIA_BASE_URL not in origin_url:
@@ -84,6 +89,7 @@ def filter_many_api_request():
             max_request_suspicious[key] = value
 
 
+# function that checks for status codes that are 300 and above
 def status_code_check(log_segments):
     status_code = log_segments[HTTP_STATUS_CODE_INDEX]
     if int(status_code) > 299:
@@ -128,12 +134,6 @@ def main():
     print("========================================================================")
 
 
-
-
-
 main()
 
 # For each line we need to separate the various element
-
-
-
